@@ -4,9 +4,8 @@ __pycache__/
 *$py.class
 
 # data
-cnes_2022
-cnes_2024
-cnes_final
+data
+documentos
 
 # C extensions
 *.so
