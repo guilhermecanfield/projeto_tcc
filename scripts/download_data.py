@@ -1,54 +1,48 @@
-import os
+# scripts/download_data.py
+
 from ftplib import FTP
 import zipfile
-from scripts.utils import criar_pastas
+import os
+from scripts.utils import criar_pastas, configurar_logger
 
-# Pastas
+logger = configurar_logger()
+
+# Diretórios
 RAW_DIR = 'data/raw'
+criar_pastas([RAW_DIR])
+
 TABELAS_INTERESSE = [
-    'rlEstabComplementar',
-    'tbAtributo',
-    'tbEstabelecimento',
-    'tbMunicipio',
-    'tbEstado',
-    'tbTipoUnidade',
-    'tbTipoEstabelecimento',
-    'tbAtividade',
-    'tbAtividadeProfissional',
+    'tbEstabelecimento', 'rlEstabComplementar', 'tbAtividade', 
+    'tbAtividadeProfissional', 'tbMunicipio', 'tbEstado', 
+    'tbTipoUnidade', 'tbTipoEstabelecimento', 'tbAtributo'
 ]
 
 def baixar_e_extrair_cnes(ano='2022'):
-    """
-    Faz o download e extração das tabelas do CNES de todas as competências de um ano.
-    """
-    criar_pastas([RAW_DIR])
-    
-    # Conecta ao FTP
     ftp = FTP('ftp.datasus.gov.br')
     ftp.login()
-    ftp.cwd('cnes')  # Diretório correto
+    ftp.cwd('cnes')
 
-    # Meses (01 a 12)
-    meses = [f'{mes:02d}' for mes in range(1, 13)]
+    for mes in range(1, 13):
+        mes_str = f'{mes:02d}'
+        arquivo = f'BASE_DE_DADOS_CNES_{ano}{mes_str}.zip'
+        caminho_local = os.path.join(RAW_DIR, arquivo)
+        logger.info(f"Baixando {arquivo}...")
 
-    for mes in meses:
-        competencia = f'{ano}{mes}'
-        arquivo_zip = f'BASE_DE_DADOS_CNES_{competencia}.zip'
-        caminho_local = os.path.join(RAW_DIR, arquivo_zip)
-
-        print(f'🔽 Baixando {arquivo_zip}...')
         with open(caminho_local, 'wb') as f:
-            ftp.retrbinary(f'RETR {arquivo_zip}', f.write)
+            ftp.retrbinary(f'RETR {arquivo}', f.write)
 
-        print(f'📦 Extraindo tabelas de interesse de {arquivo_zip}...')
         with zipfile.ZipFile(caminho_local, 'r') as zip_ref:
-            for nome_arquivo in zip_ref.namelist():
-                for base in TABELAS_INTERESSE:
-                    if nome_arquivo.lower().startswith(base.lower()) and nome_arquivo.lower().endswith('.csv'):
-                        zip_ref.extract(nome_arquivo, RAW_DIR)
+            for arquivo_zip in zip_ref.namelist():
+                if any(tab.lower() in arquivo_zip.lower() for tab in TABELAS_INTERESSE):
+                    zip_ref.extract(arquivo_zip, RAW_DIR)
+                    logger.info(f"Extraído: {arquivo_zip}")
+
+    # Remove o .zip após a extração
+        os.remove(caminho_local)
+        logger.info(f"Arquivo {arquivo} removido após extração.")
 
     ftp.quit()
-    print('✅ Download e extração finalizados.')
+    logger.info("Download e extração finalizados.")
 
 if __name__ == "__main__":
     baixar_e_extrair_cnes()

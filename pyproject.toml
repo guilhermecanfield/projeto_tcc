@@ -11,6 +11,9 @@ polars = "^1.27.0"
 pathlib = "^1.0.1"
 pyarrow = "^19.0.1"
 duckdb = "^1.2.2"
+fastexcel = "^0.13.0"
+pandas = "^2.2.3"
+openpyxl = "^3.1.5"
 
 
 [build-system]
