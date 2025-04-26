@@ -22,19 +22,19 @@ def main():
     # baixar_e_extrair_cnes()
 
     # 2. Transformação CSV -> Parquet
-    # transformar_dados()
+    transformar_dados()
 
     # 3. Concatenar todos os Parquets de 2022
-    # concatenar_parquets_por_tabela()
+    concatenar_parquets_por_tabela()
 
     # 4. Tratar e deduplicar tabelas
-    # tratar_e_deduplicar_tabelas()
+    tratar_e_deduplicar_tabelas()
 
     # 5. Tratar estabelecimentos ativos
-    # tratar_estabelecimentos()
+    tratar_estabelecimentos()
 
     # 6. Tratar dados de cidades do IBGE
-    # trata_dados_cidades()
+    trata_dados_cidades()
 
     # 7. Tratar dados de mortalidade
     tratar_dados_mortalidade()

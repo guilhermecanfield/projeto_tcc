@@ -3,6 +3,7 @@
 import os
 import polars as pl
 import polars.selectors as cs
+from scripts.configs import DIRS, ANO
 from scripts.utils import (
     criar_pastas, 
     ler_arquivo_polars,
@@ -10,15 +11,12 @@ from scripts.utils import (
     ler_cidades_ibge
 )
 
-# Pastas
-RAW_DIR = 'data/raw'
-PARQUET_DIR = 'data/parquet'
-FINAL_DIR = 'data/cnes'
-
-criar_pastas([RAW_DIR, PARQUET_DIR, FINAL_DIR])
-
-# Configurações
-ANO = '2022'
+criar_pastas([
+    DIRS['RAW_CNES'], DIRS['PARQUET_CNES'], 
+    DIRS['CONCAT_CNES'], DIRS['FINAL_CNES'], 
+    DIRS['FINAL_CIDADES'], DIRS['FINAL_IBGE'], 
+    DIRS['FINAL_MORTALIDADE']
+])
 
 # Funções
 def transformar_dados():
@@ -27,20 +25,20 @@ def transformar_dados():
     """
     print("Transformando CSVs em Parquet...")
 
-    arquivos = os.listdir(RAW_DIR)
+    arquivos = os.listdir(DIRS['RAW_CNES'])
 
     for arquivo in arquivos:
         if not arquivo.lower().endswith('.csv'):
             continue
 
-        caminho_csv = os.path.join(RAW_DIR, arquivo)
+        caminho_csv = os.path.join(DIRS['RAW_CNES'], arquivo)
         nome_base = arquivo.replace('.csv', '').lower()
 
         print(f"{arquivo} → {nome_base}.parquet")
 
         df = ler_arquivo_polars(caminho_csv)
         df = adicionar_coluna_data(df, arquivo)
-        df.write_parquet(os.path.join(PARQUET_DIR, f"{nome_base}.parquet"))
+        df.write_parquet(os.path.join(DIRS['PARQUET_CNES'], f"{nome_base}.parquet"))
 
     print("Conversão para Parquet finalizada.")
 
@@ -50,7 +48,7 @@ def concatenar_parquets_por_tabela():
     Concatena arquivos Parquet por tabela base, alinhando colunas diferentes.
     """
     print("Concatenando arquivos por tabela base...")
-    arquivos = os.listdir(PARQUET_DIR)
+    arquivos = os.listdir(DIRS['PARQUET_CNES'])
     tabelas_encontradas = {}
 
     for arquivo in arquivos:
@@ -60,7 +58,7 @@ def concatenar_parquets_por_tabela():
         tabelas_encontradas.setdefault(nome_base.lower(), []).append(arquivo)
 
     for base, arquivos_base in tabelas_encontradas.items():
-        caminhos = [os.path.join(PARQUET_DIR, f) for f in arquivos_base]
+        caminhos = [os.path.join(DIRS['PARQUET_CNES'], f) for f in arquivos_base]
         print(f'Concatenando {len(caminhos)} arquivos da tabela {base}...')
 
         dfs = [ler_arquivo_polars(c) for c in caminhos]
@@ -84,8 +82,8 @@ def concatenar_parquets_por_tabela():
         # 🔹 Finalmente concatena
         df_final = pl.concat(dfs_alinhados, how='vertical_relaxed')
 
-        os.makedirs(FINAL_DIR, exist_ok=True)
-        df_final.write_parquet(os.path.join(FINAL_DIR, f'{base}_{ANO}.parquet'))
+        os.makedirs(DIRS['CONCAT_CNES'], exist_ok=True)
+        df_final.write_parquet(os.path.join(DIRS['CONCAT_CNES'], f'{base}_{ANO}.parquet'))
         print(f'Tabela {base}_{ANO}.parquet salva!')
 
 
@@ -107,7 +105,7 @@ def tratar_e_deduplicar_tabelas():
         for nome_tabela in lista_nomes:
             print(f"\nProcessando {nome_tabela}...")
 
-            caminho_parquet = f'{FINAL_DIR}/{nome_tabela.lower()}_{ANO}.parquet'
+            caminho_parquet = f'{DIRS['CONCAT_CNES']}/{nome_tabela.lower()}_{ANO}.parquet'
             df = ler_arquivo_polars(caminho_parquet)
 
             if nome_tabela not in tabelas_com_mudanca:
@@ -123,7 +121,7 @@ def tratar_e_deduplicar_tabelas():
                 if df_unique.height == dezembro.height:
                     print(f'Sem alterações relevantes.')
 
-            caminho_destino = f'{FINAL_DIR}/{nome_tabela.lower()}_{ANO}.parquet'
+            caminho_destino = f'{DIRS['CONCAT_CNES']}/{nome_tabela.lower()}_{ANO}.parquet'
             df_unique.write_parquet(caminho_destino)
             print(f'{nome_tabela} salvo em {caminho_destino}')
 
@@ -139,7 +137,7 @@ def tratar_estabelecimentos(nome_arquivo: str = 'tbestabelecimento_2022.parquet'
     """
     print("\nTratando tbEstabelecimento...")
 
-    df = ler_arquivo_polars(f'data/cnes/{nome_arquivo}')
+    df = ler_arquivo_polars(f'{DIRS['CONCAT_CNES']}/{nome_arquivo}')
 
     df = df.select([
         'CO_UNIDADE', 'CO_CNES', 'NU_CNPJ_MANTENEDORA', 'TP_PFPJ',
@@ -163,7 +161,7 @@ def tratar_estabelecimentos(nome_arquivo: str = 'tbestabelecimento_2022.parquet'
     ativos = df.filter(pl.col('CO_MOTIVO_DESAB') == '')
     print(f"Estabelecimentos ativos em 2022: {ativos['CO_CNES'].n_unique()} unidades.")
 
-    df.write_parquet('data/cnes/tbestabelecimento_2022.parquet')
+    df.write_parquet(f'{DIRS["CONCAT_CNES"]}/tbestabelecimento_2022.parquet')
 
     print("tbEstabelecimento tratado e salvo com sucesso!")
 
@@ -171,19 +169,18 @@ def trata_dados_cidades():
     """
     Lê o CSV de cidades do IBGE, limpa e salva em Parquet.
     """
-    criar_pastas(['data/cidades_final'])
     print("Lendo dados de cidades do IBGE...")
     
     dfs = []
-    for file in os.listdir('data/cidades'):
-        df = ler_cidades_ibge('data/cidades/' + file)
+    for file in os.listdir(DIRS['BASE_CIDADES']):
+        df = ler_cidades_ibge(DIRS['BASE_CIDADES'] + file)
         dfs.append(df)
     
     df = pl.concat(dfs, how='vertical_relaxed')
 
     print("Salvando dados tratados...")
     
-    df.write_parquet('data/cidades_final/cidades_ibge_2022.parquet')
+    df.write_parquet(f'{DIRS['FINAL_CIDADES']}/cidades_ibge_2022.parquet')
     
     print("Arquivo de cidades tratado e salvo!")
 
@@ -268,6 +265,7 @@ def transformar_dados_mortalidade(df: pl.DataFrame) -> pl.DataFrame:
     ])
 
     df = df.with_columns(cs.string().str.strip_chars().str.to_titlecase())
+
     return df
 
 def tratar_dados_mortalidade(nome_arquivo: str = 'DOBR2022.parquet'):
@@ -276,14 +274,12 @@ def tratar_dados_mortalidade(nome_arquivo: str = 'DOBR2022.parquet'):
     """
     print("Lendo dados de mortalidade...")
 
-    criar_pastas(['data/mortalidade'])
-
-    df = ler_arquivo_polars(f'data/sim/{nome_arquivo}')
+    df = ler_arquivo_polars(f'{DIRS["BASE_MORTALIDADE"]}/{nome_arquivo}')
 
     df = transformar_dados_mortalidade(df)
 
     # Carrega tabelas de município e estado tratadas
-    municipios = ler_arquivo_polars('data/cnes/tbmunicipio_2022.parquet')
+    municipios = ler_arquivo_polars(f'{DIRS["CONCAT_CNES"]}/tbmunicipio_2022.parquet')
     municipios = municipios.with_columns([
         pl.col('CO_MUNICIPIO').cast(pl.Utf8)
     ])
@@ -304,5 +300,5 @@ def tratar_dados_mortalidade(nome_arquivo: str = 'DOBR2022.parquet'):
     #     how='left'
     # )
 
-    df.write_parquet('data/mortalidade/mortalidade_2022.parquet')
+    df.write_parquet(f'{DIRS["FINAL_MORTALIDADE"]}/mortalidade_2022.parquet')
     print("Tabela de mortalidade salva com sucesso.")
