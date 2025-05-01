@@ -8,7 +8,8 @@ from scripts.utils import (
     criar_pastas, 
     ler_arquivo_polars,
     adicionar_coluna_data,
-    ler_cidades_ibge
+    ler_cidades_ibge,
+    tratar_codigos_municipais
 )
 
 criar_pastas([
@@ -38,6 +39,10 @@ def transformar_dados():
 
         df = ler_arquivo_polars(caminho_csv)
         df = adicionar_coluna_data(df, arquivo)
+        
+        if 'CO_ESTADO_GESTOR' in df.columns:
+            df = tratar_codigos_municipais(df, nome_base)        
+
         df.write_parquet(os.path.join(DIRS['PARQUET_CNES'], f"{nome_base}.parquet"))
 
     print("Conversão para Parquet finalizada.")
@@ -268,7 +273,7 @@ def transformar_dados_mortalidade(df: pl.DataFrame) -> pl.DataFrame:
 
     return df
 
-def tratar_dados_mortalidade(nome_arquivo: str = 'DOBR2022.parquet'):
+def trata_dados_mortalidade(nome_arquivo: str = 'DOBR2022.parquet'):
     """
     Trata os dados de mortalidade do SUS (SIM), realiza join com municípios e estados e salva em Parquet.
     """
@@ -302,3 +307,23 @@ def tratar_dados_mortalidade(nome_arquivo: str = 'DOBR2022.parquet'):
 
     df.write_parquet(f'{DIRS["FINAL_MORTALIDADE"]}/mortalidade_2022.parquet')
     print("Tabela de mortalidade salva com sucesso.")
+
+def trata_dados_complementares_ibge():
+    """
+    Lê e trata os dados complementares do IBGE, salvando em Parquet.
+    """
+    print(f"Lendo dados complementares do IBGE...")
+
+    arquivos = os.listdir(DIRS['BASE_IBGE'])
+    
+    for nome_arquivo in arquivos:
+        if not nome_arquivo.endswith('.xlsx'):
+            continue
+        
+        print(f"Tratando {nome_arquivo}...")
+        
+        # Lê o arquivo Excel
+        df = ler_arquivo_polars(f'{DIRS["BASE_IBGE"]}/{nome_arquivo}')
+        df.write_parquet(f'{DIRS["FINAL_IBGE"]}/{nome_arquivo.replace(".xlsx", ".parquet")}')
+    
+        print(f"Arquivo {nome_arquivo} salvo com sucesso!")

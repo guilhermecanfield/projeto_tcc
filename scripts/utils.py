@@ -38,7 +38,7 @@ def configurar_logger(nome_logger="engenharia_de_dados"):
 
 def ler_arquivo_polars(caminho: str) -> pl.DataFrame:
     """
-    Lê um arquivo CSV ou Parquet usando Polars, de forma inteligente baseado na extensão.
+    Lê um arquivo csv, xlsx ou Parquet usando Polars, de forma inteligente baseado na extensão.
 
     Args:
         caminho (str): Caminho completo do arquivo.
@@ -50,6 +50,8 @@ def ler_arquivo_polars(caminho: str) -> pl.DataFrame:
 
     if extensao == '.parquet':
         return pl.read_parquet(caminho)
+    elif extensao == '.xlsx':
+        return pl.read_excel(caminho)
     elif extensao == '.csv':
         return pl.read_csv(
                 caminho, 
@@ -153,6 +155,33 @@ def ler_cidades_ibge(path_csv):
         df = df.filter(pl.col('codigo_municipio').is_not_null() & ~pl.col('codigo_municipio').str.contains('Notas', literal=True))
     elif 'codigo_municipio' in df.columns:
         df = df.filter(pl.col('codigo_municipio').is_not_null() & ~pl.col('codigo_municipio').str.contains('Notas', literal=True))
+
+    return df
+
+def tratar_codigos_municipais(df, nome_base):
+    """
+    Atribui a alguns municipios do Distrito Federal que não estão cadastrados no IBGE
+    o código 5300108, pois eles pertencem a Brasília.
+    """
+    codigos = [
+        '530170', '530040', '530060', '530180',
+        '530050', '530130', '530090', '530070',
+        '530080', '530120', '530135', '530100',
+        '530020', '530150'
+    ]
+
+    print("Corrigindo Codigo dos Municípios do DF na tabela: ", nome_base)
+    df = df.with_columns([
+        pl.col('CO_ESTADO_GESTOR').cast(pl.Utf8),
+        pl.col('CO_MUNICIPIO_GESTOR').cast(pl.Utf8)
+    ])
+
+    df = df.with_columns(
+        pl.when(pl.col('CO_MUNICIPIO_GESTOR').is_in(codigos))
+        .then(pl.lit('530010'))
+        .otherwise(pl.col('CO_MUNICIPIO_GESTOR'))
+        .alias('CO_MUNICIPIO_GESTOR')
+    )
 
     return df
 

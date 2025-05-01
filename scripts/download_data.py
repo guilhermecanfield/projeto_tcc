@@ -14,7 +14,8 @@ criar_pastas([RAW_DIR])
 TABELAS_INTERESSE = [
     'tbEstabelecimento', 'rlEstabComplementar', 'tbAtividade', 
     'tbAtividadeProfissional', 'tbMunicipio', 'tbEstado', 
-    'tbTipoUnidade', 'tbTipoEstabelecimento', 'tbAtributo'
+    'tbTipoUnidade', 'tbTipoEstabelecimento', 'tbAtributo',
+    'tbCargaHorariaSus'
 ]
 
 def baixar_e_extrair_cnes(ano='2022'):
