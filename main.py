@@ -14,7 +14,8 @@ from scripts.load_database import (
     carregar_parquets_para_duckdb,
     carregar_cidades_ibge_no_duckdb,
     carregar_mortalidade_no_duckdb,
-    carregar_ibge_adicionais_no_duckdb
+    carregar_ibge_adicionais_no_duckdb,
+    carregar_tabela_principal
 )
 
 def main():
@@ -55,6 +56,9 @@ def main():
 
     # 12. Carregar demais tabelas IBGE já tratadas no banco de dados DuckDB
     carregar_ibge_adicionais_no_duckdb()
+
+    # 13. Carregar a tabela principal no banco de dados DuckDB
+    carregar_tabela_principal()
 
     print("\nPipeline completo finalizado com sucesso!\n")
 
