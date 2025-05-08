@@ -129,10 +129,16 @@ def carregar_tabela_principal():
                 SUM(rec.QT_SUS) leitos_sus
             FROM
                 main.rlestabcomplementar rec
-        --	JOIN 
-        --		main.tbatributo ta
-        --	ON
-        --		rec.CO_TIPO_LEITO = ta.CO_ATRIBUTO
+            WHERE
+                rec.data_competencia = '2022-12-01'
+                AND rec.CO_UNIDADE IN (
+                    SELECT 
+                        DISTINCT CO_UNIDADE 
+                    FROM 
+                        main.tbestabelecimento te
+                    WHERE
+                        te.CO_MOTIVO_DESAB = ''
+                )
             GROUP BY ALL
         ),
         tabela_completa AS (
