@@ -11,7 +11,8 @@ DIRS = {
     'FINAL_IBGE': 'data/ibge_final',
     'BASE_CIDADES': 'data/cidades/',
     'BASE_MORTALIDADE': 'data/sim',
-    'BASE_IBGE': 'data/ibge'
+    'BASE_IBGE': 'data/ibge',
+    'TABELA_FINAL': 'data/tabela_final'
 }
 
 # Anos

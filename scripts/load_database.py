@@ -121,21 +121,21 @@ def carregar_tabela_principal():
 
     # Cria a tabela, caso não exista
     conn.execute("""
-        CREATE TABLE IF NOT EXISTS main.tabela_final AS (
+        CREATE OR REPLACE TABLE tabela_final AS
         WITH leitos AS(
             SELECT 
                 rec.CO_UNIDADE,
                 SUM(rec.QT_EXIST) leitos_existentes,
                 SUM(rec.QT_SUS) leitos_sus
             FROM
-                main.rlestabcomplementar rec
+                rlestabcomplementar rec
             WHERE
                 rec.data_competencia = '2022-12-01'
                 AND rec.CO_UNIDADE IN (
                     SELECT 
                         DISTINCT CO_UNIDADE 
                     FROM 
-                        main.tbestabelecimento te
+                        tbestabelecimento te
                     WHERE
                         te.CO_MOTIVO_DESAB = ''
                 )
@@ -160,18 +160,18 @@ def carregar_tabela_principal():
                 te.TP_ESTAB_SEMPRE_ABERTO,
                 te.CO_MOTIVO_DESAB
             FROM
-                main.tbestabelecimento te
+                tbestabelecimento te
             LEFT JOIN
-                main.tbmunicipio tm
+                tbmunicipio tm
                 ON te.CO_MUNICIPIO_GESTOR = tm.CO_MUNICIPIO
             LEFT JOIN
-                main.tbtipounidade ttu
+                tbtipounidade ttu
                 ON ttu.CO_TIPO_UNIDADE = te.TP_UNIDADE
             LEFT JOIN
-                main.tbtipoestabelecimento tte
+                tbtipoestabelecimento tte
                 ON te.CO_TIPO_ESTABELECIMENTO = tte.CO_TIPO_ESTABELECIMENTO
             LEFT JOIN
-                main.tbatividade ta
+                tbatividade ta
                 ON te.CO_ATIVIDADE_PRINCIPAL = ta.CO_ATIVIDADE
             LEFT JOIN
                 leitos l
@@ -184,7 +184,7 @@ def carregar_tabela_principal():
                 o.CODESTAB, 
                 COUNT(*) qtd_obitos 
             FROM 
-                main.tb_mortalidade_2022 o
+                tb_mortalidade_2022 o
             GROUP BY 
                 o.CODESTAB
         ),
@@ -204,9 +204,9 @@ def carregar_tabela_principal():
                 tm.CO_MUNICIPIO codigo,
                 COUNT(*) total_obitos
             FROM 
-                main.tb_mortalidade_2022 o 
+                tb_mortalidade_2022 o 
             JOIN
-                main.tbmunicipio tm 
+                tbmunicipio tm 
             ON
                 o.CODMUNOCOR = tm.CO_MUNICIPIO
             WHERE
@@ -214,12 +214,22 @@ def carregar_tabela_principal():
             GROUP BY
                 ALL
         ),
+        estabelecimentos_com_leito AS (
+            SELECT
+                tc.CO_MUNICIPIO,
+                COUNT(*) quantidade_unidades_com_leito
+            FROM
+                tabela_completa tc
+            WHERE
+                tc.leitos_existentes > 0
+            GROUP BY ALL
+        ),
         estabelecimentos_por_municipio AS (
             SELECT 
                 te.CO_MUNICIPIO_GESTOR,
                 COUNT(*) quantidade_unidades
             FROM 
-                main.tbestabelecimento te
+                tbestabelecimento te
             GROUP BY ALL
         ),
         socio_economicos AS (
@@ -240,7 +250,7 @@ def carregar_tabela_principal():
                 i.pib_per_capita,
                 i.mortalidade_infantil
             FROM 
-                main.tb_cidades_ibge_2022 i
+                tb_cidades_ibge_2022 i
             JOIN 
                 estabelecimentos_por_municipio e
             ON 
@@ -258,17 +268,17 @@ def carregar_tabela_principal():
                 tap.TP_CLASSIFICACAO_PROFISSIONAL classificacao_profissional,
                 tap.TP_CBO_SAUDE cbo_saude,
                 tchs.TP_SUS_NAO_SUS sus
-            FROM main.tbcargahorariasus tchs 
+            FROM tbcargahorariasus tchs 
             JOIN
-                main.tbestabelecimento te
+                tbestabelecimento te
             ON
                 te.CO_UNIDADE = tchs.CO_UNIDADE
             JOIN 
-                main.tbatividadeprofissional tap 
+                tbatividadeprofissional tap 
             ON
                 tap.CO_CBO = tchs.CO_CBO
             JOIN
-                main.tbmunicipio tm
+                tbmunicipio tm
             ON
                 tm.CO_MUNICIPIO = te.CO_MUNICIPIO_GESTOR
         ),
@@ -302,12 +312,14 @@ def carregar_tabela_principal():
             se.idh,
             COUNT(DISTINCT CO_UNIDADE) qtd_unidades,
             ROUND(se.hab_por_unidade, 2) hab_por_unidade,
-            se.unidades_por_hab * 1000 unidades_por_k_hab,
+            COUNT(DISTINCT CO_UNIDADE) / MAX(se.populacao) * 1000 unidades_por_k_hab,
             ((m.qtd_medicos / se.populacao) * 1000) medicos_por_k_habitante,
             (se.populacao / m.qtd_medicos) habitantes_por_medico,
             ((e.qtd_enfermeiros / se.populacao) * 1000) enfermeiros_por_k_habitante,
             (se.populacao / e.qtd_enfermeiros) habitantes_por_enfermeiros,
             SUM(leitos_existentes) leitos_existentes,
+            ecl.quantidade_unidades_com_leito,
+            ((SUM(ecl.quantidade_unidades_com_leito) / SUM(se.populacao)) * 1000) quantidade_unidades_com_leito_por_k_hab,
             ROUND(SUM(leitos_existentes) / COUNT(DISTINCT CO_UNIDADE), 2) total_leitos_unidade,
             (SUM(leitos_existentes) / MAX(se.populacao) * 1000) leitos_por_k_hab,
             SUM(leitos_sus) leitos_sus,
@@ -354,39 +366,39 @@ def carregar_tabela_principal():
         ON
             ot.codigo = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_de_alfabetizacao a
+            taxa_de_alfabetizacao a
         ON
             SUBSTRING(a.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_coleta_lixo cdl
+            taxa_coleta_lixo cdl
         ON
             SUBSTRING(cdl.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_rede_esgoto lre 
+            taxa_rede_esgoto lre 
         ON
             SUBSTRING(lre.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.anos_de_estudo mae 
+            anos_de_estudo mae 
         ON
             SUBSTRING(mae.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_populacao_nivel_instrucao ni 
+            taxa_populacao_nivel_instrucao ni 
         ON
             SUBSTRING(ni.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.pop_res_favela prf
+            pop_res_favela prf
         ON
             SUBSTRING(prf.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_situacao_domicilio tsd 
+            taxa_situacao_domicilio tsd 
         ON
             SUBSTRING(tsd.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_frequencia_escolar tfe
+            taxa_frequencia_escolar tfe
         ON
             SUBSTRING(tfe.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_distribuicao_etaria tde
+            taxa_distribuicao_etaria tde
         ON
             SUBSTRING(tde.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
@@ -397,10 +409,26 @@ def carregar_tabela_principal():
             enfermeiros e
         ON
             e.codigo_municipio = eco.CO_MUNICIPIO
+        LEFT JOIN
+            estabelecimentos_com_leito ecl
+        ON 
+            ecl.CO_MUNICIPIO = eco.CO_MUNICIPIO
         GROUP BY ALL
         )
-        SELECT * FROM tabela_final;
+        SELECT * FROM tabela_final
     """)
 
     logger.info("Tabela Final criada e populada com sucesso no DuckDB!")
+
+    # Garante que o diretório 'tabela_final' existe
+    os.makedirs(DIRS['TABELA_FINAL'], exist_ok=True)
+
+    # Lê a tabela final do DuckDB como DataFrame
+    logger.info("Exportando tabela final para Parquet...")
+    df = conn.execute("SELECT * FROM tabela_final").fetchdf()  # fetchdf() retorna um pandas DataFrame
+
+    # Salva o DataFrame em arquivo Parquet
+    df.to_parquet(f"{DIRS['TABELA_FINAL']}/tabela_final.parquet", index=False)
+
+    logger.info(f"Arquivo Parquet salvo com sucesso em '{DIRS['TABELA_FINAL']}/tabela_final.parquet'!")
     conn.close()

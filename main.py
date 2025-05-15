@@ -43,19 +43,19 @@ def main():
     # trata_dados_mortalidade()
 
     # 8. Carregar Parquets no banco de dados DuckDB
-    carregar_parquets_para_duckdb()
+    # carregar_parquets_para_duckdb()
 
     # 9. Carregar cidades do IBGE no banco de dados DuckDB
-    carregar_cidades_ibge_no_duckdb()
+    # carregar_cidades_ibge_no_duckdb()
 
     # 10. Carregar dados de mortalidade no banco de dados DuckDB
-    carregar_mortalidade_no_duckdb()
+    # carregar_mortalidade_no_duckdb()
 
     # 11. Trata e transforma dados adicionais do IBGE
-    trata_dados_complementares_ibge()
+    # trata_dados_complementares_ibge()
 
     # 12. Carregar demais tabelas IBGE já tratadas no banco de dados DuckDB
-    carregar_ibge_adicionais_no_duckdb()
+    # carregar_ibge_adicionais_no_duckdb()
 
     # 13. Carregar a tabela principal no banco de dados DuckDB
     carregar_tabela_principal()
