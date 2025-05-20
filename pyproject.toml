@@ -18,6 +18,10 @@ matplotlib = "^3.10.3"
 seaborn = "^0.13.2"
 plotly = "^6.0.1"
 nbformat = "^5.10.4"
+geopandas = "^1.0.1"
+shapely = ">=1.7.0,<=2.1.0"
+geobr = "^0.2.2"
+streamlit = "^1.45.1"
 
 
 [build-system]
