@@ -6,7 +6,7 @@ import geobr
 
 # Configurar estilo personalizado
 st.set_page_config(
-    page_title="Mapa da Saúde Brasil",
+    page_title="Mapa da Saúde no Brasil",
     page_icon="🗺️",
     layout="wide",
     initial_sidebar_state="auto"
@@ -15,7 +15,7 @@ st.set_page_config(
 # --- Funções auxiliares ---
 @st.cache_data
 def carregar_dados():
-    df = pd.read_parquet('data/tabela_final/tabela_final.parquet').fillna(0)
+    df = pd.read_parquet('dados/tabela_final.parquet').fillna(0)
     df['uf_nome'] = df['uf'] + ' - ' + df['nome']
     df['obitos_fora_estabelecimento'] = df['total_obitos'] - df['obitos_em_estabelecimentos']
     df['taxa_obitos_fora_estabelecimento'] = (df['obitos_fora_estabelecimento'] / df['total_obitos']) * 100
