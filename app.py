@@ -8,7 +8,7 @@ import geobr
 st.set_page_config(
     page_title="Mapa da Saúde no Brasil",
     page_icon="🗺️",
-    layout="wide",
+    layout="wide", #centered
     initial_sidebar_state="auto"
 )
 
@@ -77,9 +77,15 @@ labels_filtrados = {col: labels[col] for col in colunas_selecionaveis}
 # --- Interface ---
 
 st.write("<h1 style='text-align: center;'>🗺️ Mapa de Acesso à Saúde nos Municípios Brasileiros</h1>", unsafe_allow_html=True)
+
 st.write("""
-    Este mapa apresenta dados sobre o acesso à saúde nos municípios brasileiros.
-    Os dados incluem população, unidades de saúde, médicos, enfermeiros, leitos, óbitos e mortalidade infantil.
+    Este mapa interativo exibe indicadores relacionados ao acesso e à oferta de serviços de saúde nos municípios brasileiros.
+    As informações abrangem aspectos demográficos, estruturais e de saúde pública, como:
+
+    População, número de unidades po mil habitantes, quantidade de médicos e enfermeiros por mil habitantes, disponibilidade de leitos hospitalares (gerais e SUS),
+    taxas de mortalidade geral e infantil, indicadores socioeconômicos complementares.
+
+    Você pode explorar os dados por estado ou município e selecionar diferentes indicadores para colorir o mapa conforme o critério do seu interesse.
     
     **Obs.: O mapa pode demorar até 1 minuto para ser exibido!**
 """)
