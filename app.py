@@ -20,6 +20,8 @@ def carregar_dados():
     df['obitos_fora_estabelecimento'] = df['total_obitos'] - df['obitos_em_estabelecimentos']
     df['taxa_obitos_fora_estabelecimento'] = (df['obitos_fora_estabelecimento'] / df['total_obitos']) * 100
     df['codigo_municipio'] = df['codigo_municipio'].astype(str)
+    for col in df.select_dtypes(include=['float64']).columns:
+        df[col] = df[col].round(2)
     return df
 
 @st.cache_data
