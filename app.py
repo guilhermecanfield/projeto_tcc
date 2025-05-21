@@ -47,30 +47,28 @@ geodf = carregar_geodados()
 gdf = merge_dados_geograficos(df, geodf)
 
 labels = {
-    'unidades_por_k_hab': 'Unidades por mil hab.',
-    'populacao': 'População',
-    'idh': 'IDH',
-    'qtd_unidades': 'Total de unidades',
-    'medicos_por_k_habitante': 'Médicos por mil hab.',
-    'enfermeiros_por_k_habitante': 'Enfermeiros por mil hab.',
-    'quantidade_unidades_com_leito': 'Unidades com leito',
-    'leitos_existentes': 'Leitos existentes',
-    'leitos_por_k_hab': 'Leitos por mil hab.',
-    'leitos_sus': 'Leitos SUS',
-    'leitos_sus_por_k_hab': 'Leitos SUS por mil hab.',
-    'obitos_por_unidade': 'Óbitos por unidade',
-    'obitos_em_estabelecimentos': 'Óbitos em estabelecimentos',
-    'obitos_fora_estabelecimento': 'Óbitos fora de estabelecimentos',
-    'taxa_obitos_fora_estabelecimento': 'Percentual de óbitos fora de estabelecimentos',
-    'total_obitos': 'Total de óbitos',
-    'taxa_mortalidade_geral': 'Taxa de mortalidade geral',
-    'mortalidade_infantil': 'Taxa de Mortalidade infantil'
+    'populacao': '👥 População',
+    'idh': '📊 IDH',
+    'unidades_por_k_hab': '🏥 Unidades de Saúde por mil hab.',
+    'medicos_por_k_habitante': '🩺 Médicos por mil hab.',
+    'enfermeiros_por_k_habitante': '🧑‍⚕️ Enfermeiros por mil hab.',
+    'leitos_por_k_hab': '🛏️ Leitos por mil hab.',
+    'leitos_sus_por_k_hab': '🛏️ Leitos SUS por mil hab.',
+    'taxa_mortalidade_geral': '💀 Mortalidade geral',
+    'mortalidade_infantil': '👶 Mortalidade infantil',
+    'pib_per_capita': '💰 PIB per capita',
+    'taxa_de_alfabetizados': '📚 Taxa de alfabetização',
+    'pct_idoso': '👴 % de idosos',
+    'taxa_freq_escolar': '📖 Taxa de frequência escolar',
+    'taxa_populacao_urbana': '🏙️ Taxa de população urbana'
 }
 
 colunas_selecionaveis = [
     'unidades_por_k_hab', 'idh', 'medicos_por_k_habitante',
     'enfermeiros_por_k_habitante', 'leitos_por_k_hab',
-    'obitos_por_unidade', 'taxa_mortalidade_geral', 'mortalidade_infantil'
+    'taxa_mortalidade_geral', 'mortalidade_infantil',
+    'pib_per_capita', 'taxa_de_alfabetizados', 'pct_idoso',
+    'taxa_freq_escolar', 'taxa_populacao_urbana'
 ]
 labels_filtrados = {col: labels[col] for col in colunas_selecionaveis}
 
