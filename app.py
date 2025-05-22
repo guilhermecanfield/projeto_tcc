@@ -149,3 +149,61 @@ if kpi_label != 'Selecione o critério':
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("Por favor, selecione um critério para visualizar o mapa.")
+
+# --- Seção de Contato ---
+st.markdown("---")  # Linha divisória
+
+st.markdown("<h3 style='text-align: center; color: #1f77b4;'>📬 Entre em Contato</h3>", unsafe_allow_html=True)
+
+# Criar colunas para organizar os links
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.markdown("""
+    <div style='text-align: center; padding: 10px;'>
+        <a href='https://www.linkedin.com/in/guilhermecanfield/' target='_blank' style='text-decoration: none;'>
+            <div style='background-color: #f0f2f6; padding: 15px; border-radius: 10px; border: 2px solid #e0e0e0;'>
+                <div style='font-size: 30px; margin-bottom: 5px;'>💼</div>
+                <div style='color: #333; font-weight: bold;'>LinkedIn</div>
+            </div>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown("""
+    <div style='text-align: center; padding: 10px;'>
+        <a href='https://sites.google.com/view/guilhermecanfield/' target='_blank' style='text-decoration: none;'>
+            <div style='background-color: #f0f2f6; padding: 15px; border-radius: 10px; border: 2px solid #e0e0e0;'>
+                <div style='font-size: 30px; margin-bottom: 5px;'>🌐</div>
+                <div style='color: #333; font-weight: bold;'>Portfólio</div>
+            </div>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown("""
+    <div style='text-align: center; padding: 10px;'>
+        <a href='https://github.com/guilhermecanfield' target='_blank' style='text-decoration: none;'>
+            <div style='background-color: #f0f2f6; padding: 15px; border-radius: 10px; border: 2px solid #e0e0e0;'>
+                <div style='font-size: 30px; margin-bottom: 5px;'>💻</div>
+                <div style='color: #333; font-weight: bold;'>GitHub</div>
+            </div>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+    st.markdown("""
+    <div style='text-align: center; padding: 10px;'>
+        <a href='mailto:guilherme.canfield87@gmail.com' style='text-decoration: none;'>
+            <div style='background-color: #f0f2f6; padding: 15px; border-radius: 10px; border: 2px solid #e0e0e0;'>
+                <div style='font-size: 30px; margin-bottom: 5px;'>📧</div>
+                <div style='color: #333; font-weight: bold;'>Email</div>
+            </div>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<p style='text-align: center; color: #666; font-style: italic; margin-top: 20px;'>Desenvolvido por Guilherme Canfield de Almeida | Dados de Saúde Pública do Brasil</p>", unsafe_allow_html=True)
