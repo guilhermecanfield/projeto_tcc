@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "projeto-tcc"
+version = "0.1.0"
+description = ""
+authors = ["Guilherme Canfield <guilherme.canfield87@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+polars = "^1.27.0"
+pathlib = "^1.0.1"
+pyarrow = "^19.0.1"
+duckdb = "^1.2.2"
+fastexcel = "^0.13.0"
+pandas = "^2.2.3"
+openpyxl = "^3.1.5"
+matplotlib = "^3.10.3"
+seaborn = "^0.13.2"
+plotly = "^6.0.1"
+nbformat = "^5.10.4"
+geopandas = "^1.0.1"
+shapely = ">=1.7.0,<=2.1.0"
+geobr = "^0.2.2"
+streamlit = "^1.45.1"
+hdbscan = "^0.8.40"
+umap-learn = "^0.5.7"
+scikit-learn = "^1.6.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
