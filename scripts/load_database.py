@@ -95,6 +95,20 @@ def carregar_mortalidade_no_duckdb():
     conn.close()
     logger.info("Tabela tb_mortalidade_2022 criada e populada com sucesso no DuckDB!")
 
+def carregar_internacoes_no_duckdb():
+    logger.info("Carregando dados de internacoes no DuckDB...")
+    conn = duckdb.connect(DB_PATH)
+
+    caminho = f'{DIRS["FINAL_INTERNACOES"]}/internacoes_2022.parquet'
+
+    conn.execute("""
+        CREATE OR REPLACE TABLE tb_internacoes_2022 AS
+        SELECT * FROM read_parquet(?)
+    """, (caminho,))
+
+    conn.close()
+    logger.info("Tabela tb_internacoes_2022 criada e populada com sucesso no DuckDB!")
+
 def carregar_ibge_adicionais_no_duckdb():
     logger.info("Carregando tabelas adicionais do IBGE no DuckDB...")
     conn = duckdb.connect(DB_PATH)

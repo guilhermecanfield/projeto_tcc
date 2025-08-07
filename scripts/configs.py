@@ -8,9 +8,11 @@ DIRS = {
     'FINAL_CNES': 'data/cnes_final',
     'FINAL_CIDADES': 'data/cidades_final',
     'FINAL_MORTALIDADE': 'data/mortalidade_final',
+    'FINAL_INTERNACOES': 'data/interncaoes_final',
     'FINAL_IBGE': 'data/ibge_final',
     'BASE_CIDADES': 'data/cidades/',
     'BASE_MORTALIDADE': 'data/sim',
+    'BASE_INTERNACOES': 'data/sih',
     'BASE_IBGE': 'data/ibge',
     'TABELA_FINAL': 'data/tabela_final'
 }
