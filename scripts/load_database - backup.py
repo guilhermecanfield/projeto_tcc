@@ -142,18 +142,14 @@ def carregar_tabela_principal():
                 SUM(rec.QT_EXIST) leitos_existentes,
                 SUM(rec.QT_SUS) leitos_sus
             FROM
-                main.rlestabcomplementar rec
-        --	JOIN 
-        --		main.tbatributo ta
-        --	ON
-        --		rec.CO_TIPO_LEITO = ta.CO_ATRIBUTO
+                rlestabcomplementar rec
             WHERE
                 rec.data_competencia = '2022-12-01'
                 AND rec.CO_UNIDADE IN (
                     SELECT 
                         DISTINCT CO_UNIDADE 
                     FROM 
-                        main.tbestabelecimento te
+                        tbestabelecimento te
                     WHERE
                         te.CO_MOTIVO_DESAB = ''
                 )
@@ -178,18 +174,18 @@ def carregar_tabela_principal():
                 te.TP_ESTAB_SEMPRE_ABERTO,
                 te.CO_MOTIVO_DESAB
             FROM
-                main.tbestabelecimento te
+                tbestabelecimento te
             LEFT JOIN
-                main.tbmunicipio tm
+                tbmunicipio tm
                 ON te.CO_MUNICIPIO_GESTOR = tm.CO_MUNICIPIO
             LEFT JOIN
-                main.tbtipounidade ttu
+                tbtipounidade ttu
                 ON ttu.CO_TIPO_UNIDADE = te.TP_UNIDADE
             LEFT JOIN
-                main.tbtipoestabelecimento tte
+                tbtipoestabelecimento tte
                 ON te.CO_TIPO_ESTABELECIMENTO = tte.CO_TIPO_ESTABELECIMENTO
             LEFT JOIN
-                main.tbatividade ta
+                tbatividade ta
                 ON te.CO_ATIVIDADE_PRINCIPAL = ta.CO_ATIVIDADE
             LEFT JOIN
                 leitos l
@@ -202,7 +198,7 @@ def carregar_tabela_principal():
                 o.CODESTAB, 
                 COUNT(*) qtd_obitos 
             FROM 
-                main.tb_mortalidade_2022 o
+                tb_mortalidade_2022 o
             GROUP BY 
                 o.CODESTAB
         ),
@@ -222,9 +218,9 @@ def carregar_tabela_principal():
                 tm.CO_MUNICIPIO codigo,
                 COUNT(*) total_obitos
             FROM 
-                main.tb_mortalidade_2022 o 
+                tb_mortalidade_2022 o 
             JOIN
-                main.tbmunicipio tm 
+                tbmunicipio tm 
             ON
                 o.CODMUNOCOR = tm.CO_MUNICIPIO
             WHERE
@@ -247,7 +243,7 @@ def carregar_tabela_principal():
                 te.CO_MUNICIPIO_GESTOR,
                 COUNT(*) quantidade_unidades
             FROM 
-                main.tbestabelecimento te
+                tbestabelecimento te
             GROUP BY ALL
         ),
         socio_economicos AS (
@@ -257,7 +253,6 @@ def carregar_tabela_principal():
                 i.nome,
                 (i.populacao_residente / e.quantidade_unidades) hab_por_unidade,
                 (e.quantidade_unidades / i.populacao_residente) unidades_por_hab,
-                (e.quantidade_unidades / i.populacao_residente) * 1000 unidades_por_k_hab,
                 e.quantidade_unidades,
                 i.area_km2 area_territorial,
                 i.populacao_residente populacao,
@@ -269,7 +264,7 @@ def carregar_tabela_principal():
                 i.pib_per_capita,
                 i.mortalidade_infantil
             FROM 
-                main.tb_cidades_ibge_2022 i
+                tb_cidades_ibge_2022 i
             JOIN 
                 estabelecimentos_por_municipio e
             ON 
@@ -287,17 +282,17 @@ def carregar_tabela_principal():
                 tap.TP_CLASSIFICACAO_PROFISSIONAL classificacao_profissional,
                 tap.TP_CBO_SAUDE cbo_saude,
                 tchs.TP_SUS_NAO_SUS sus
-            FROM main.tbcargahorariasus tchs 
+            FROM tbcargahorariasus tchs 
             JOIN
-                main.tbestabelecimento te
+                tbestabelecimento te
             ON
                 te.CO_UNIDADE = tchs.CO_UNIDADE
             JOIN 
-                main.tbatividadeprofissional tap 
+                tbatividadeprofissional tap 
             ON
                 tap.CO_CBO = tchs.CO_CBO
             JOIN
-                main.tbmunicipio tm
+                tbmunicipio tm
             ON
                 tm.CO_MUNICIPIO = te.CO_MUNICIPIO_GESTOR
         ),
@@ -338,7 +333,7 @@ def carregar_tabela_principal():
             (se.populacao / e.qtd_enfermeiros) habitantes_por_enfermeiros,
             SUM(leitos_existentes) leitos_existentes,
             ecl.quantidade_unidades_com_leito,
-            (SUM(ecl.quantidade_unidades_com_leito) / SUM(se.populacao) * 1000) quantidade_unidades_com_leito_por_k_hab,
+            ((SUM(ecl.quantidade_unidades_com_leito) / SUM(se.populacao)) * 1000) quantidade_unidades_com_leito_por_k_hab,
             ROUND(SUM(leitos_existentes) / COUNT(DISTINCT CO_UNIDADE), 2) total_leitos_unidade,
             (SUM(leitos_existentes) / MAX(se.populacao) * 1000) leitos_por_k_hab,
             SUM(leitos_sus) leitos_sus,
@@ -385,39 +380,39 @@ def carregar_tabela_principal():
         ON
             ot.codigo = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_de_alfabetizacao a
+            taxa_de_alfabetizacao a
         ON
             SUBSTRING(a.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_coleta_lixo cdl
+            taxa_coleta_lixo cdl
         ON
             SUBSTRING(cdl.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_rede_esgoto lre 
+            taxa_rede_esgoto lre 
         ON
             SUBSTRING(lre.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.anos_de_estudo mae 
+            anos_de_estudo mae 
         ON
             SUBSTRING(mae.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_populacao_nivel_instrucao ni 
+            taxa_populacao_nivel_instrucao ni 
         ON
             SUBSTRING(ni.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.pop_res_favela prf
+            pop_res_favela prf
         ON
             SUBSTRING(prf.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_situacao_domicilio tsd 
+            taxa_situacao_domicilio tsd 
         ON
             SUBSTRING(tsd.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_frequencia_escolar tfe
+            taxa_frequencia_escolar tfe
         ON
             SUBSTRING(tfe.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
-            main.taxa_distribuicao_etaria tde
+            taxa_distribuicao_etaria tde
         ON
             SUBSTRING(tde.codigo, 1, 6) = eco.CO_MUNICIPIO
         LEFT JOIN
@@ -433,63 +428,6 @@ def carregar_tabela_principal():
         ON 
             ecl.CO_MUNICIPIO = eco.CO_MUNICIPIO
         GROUP BY ALL
-        ), pivotada AS (
-        SELECT *
-        FROM (
-            SELECT
-                CO_MUNICIPIO,
-                NO_MUNICIPIO,
-                DS_TIPO_UNIDADE,
-                COUNT(*) qtd_unidades
-            FROM tabela_completa
-            GROUP BY ALL
-        )
-        PIVOT (
-            SUM(qtd_unidades)
-            FOR DS_TIPO_UNIDADE IN (
-        'CENTRO DE SAUDE/UNIDADE BASICA',
-        'UNIDADE DE APOIO DIAGNOSE E TERAPIA (SADT ISOLADO)',
-        'CENTRO DE ATENCAO PSICOSSOCIAL',
-        'PRONTO ATENDIMENTO',
-        'TELESSAUDE',
-        'CENTRO DE ATENCAO HEMOTERAPIA E OU HEMATOLOGICA',
-        'LABORATORIO DE SAUDE PUBLICA',
-        '"CENTRAL DE NOTIFICACAO,CAPTACAO E DISTRIB DE ORGAOS ESTADUAL"',
-        'CENTRO DE PARTO NORMAL - ISOLADO',
-        'UNIDADE DE VIGILANCIA EM SAUDE',
-        'CENTRAL DE REGULACAO DO ACESSO',
-        'SERVICO DE ATENCAO DOMICILIAR ISOLADO(HOME CARE)',
-        'UNIDADE MOVEL FLUVIAL',
-        'PRONTO SOCORRO ESPECIALIZADO',
-        'OFICINA ORTOPEDICA',
-        'POLO ACADEMIA DA SAUDE',
-        'FARMACIA',
-        'CENTRAL DE REGULACAO MEDICA DAS URGENCIAS',
-        'UNIDADE MOVEL TERRESTRE',
-        'UNIDADE DE ATENCAO EM REGIME RESIDENCIAL',
-        'PRONTO SOCORRO GERAL',
-        'CONSULTORIO ISOLADO',
-        'CENTRAL DE GESTAO EM SAUDE',
-        'COOPERATIVA OU EMPRESA DE CESSAO DE TRABALHADORES NA SAUDE',
-        'HOSPITAL/DIA - ISOLADO',
-        'HOSPITAL ESPECIALIZADO',
-        'CLINICA/CENTRO DE ESPECIALIDADE',
-        'UNIDADE DE ATENCAO A SAUDE INDIGENA',
-        'POLO DE PREVENCAO DE DOENCAS E AGRAVOS E PROMOCAO DA SAUDE',
-        'LABORATORIO CENTRAL DE SAUDE PUBLICA LACEN',
-        'CENTRAL DE ABASTECIMENTO',
-        'CENTRO DE IMUNIZACAO',
-        'UNIDADE MOVEL DE NIVEL PRE-HOSPITALAR NA AREA DE URGENCIA',
-        'CENTRO DE APOIO A SAUDE DA FAMILIA',
-        'HOSPITAL GERAL',
-        'POLICLINICA',
-        'POSTO DE SAUDE',
-        'UNIDADE MISTA'
-            )
-        )), tabela_completa_pivot AS (
-        SELECT * FROM tabela_final tf
-        JOIN pivotada p
-        ON tf.codigo_municipio = p.CO_MUNICIPIO
         )
         SELECT * FROM tabela_final
     """)

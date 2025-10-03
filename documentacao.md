@@ -1,7 +1,7 @@
 
-# 🧾 Documentação do Modelo de Dados - CNES, IBGE, SIM (Projeto TCC)
+# 🧾 Documentação do Modelo de Dados - CNES, IBGE, SIM, SIH (Projeto TCC)
 
-Este modelo relacional organiza dados públicos para análise de disparidades regionais na oferta de serviços de saúde nos municípios brasileiros. Ele consolida tabelas do CNES (estabelecimentos, leitos, profissionais), SIDRA/IBGE (indicadores socioeconômicos) e SIM (mortalidade), permitindo análises com base municipal ou estadual.
+Este modelo relacional organiza dados públicos para análise de disparidades regionais na oferta de serviços de saúde nos municípios brasileiros. Ele consolida tabelas do CNES (estabelecimentos, leitos, profissionais), SIDRA/IBGE (indicadores socioeconômicos), SIM (mortalidade) e SIH (informações hospitalares), permitindo análises com base municipal ou estadual.
 
 ---
 
@@ -96,6 +96,23 @@ Dados da declaração de óbito (SIM).
 
 ---
 
+### 🏨 Internações Hospitalares (SIH/SUS)
+
+#### `tb_internacoes`
+Internações hospitalares extraídas do Sistema de Informações Hospitalares do SUS (SIH/SUS).
+
+- `cnes`: FK para `tb_estabelecimento.cnes`
+- `data_internacao`: Data de início da internação
+- `data_alta`: Data de alta hospitalar
+- `sexo`: Sexo do paciente
+- `idade`: Idade do paciente
+- `diagnostico_principal`: Código CID-10 do diagnóstico principal
+- `procedimento`: Código do procedimento realizado
+- `tipo_alta`: Tipo de alta hospitalar (ex: cura, óbito, transferência)
+- `valor_total`: Valor total da internação
+
+---
+
 ### 🌱 Saneamento e Infraestrutura Básica (SIDRA)
 
 #### `sidra_6803_rede_agua`
@@ -157,6 +174,7 @@ erDiagram
   tb_estabelecimento }o--|| tb_tipo_estabelecimento : é_categoria
   tb_estabelecimento }o--|| tb_atividade : tem_atividade
   tb_estabelecimento ||--o{ tb_mortalidade : registra
+  tb_estabelecimento ||--o{ tb_internacoes : registra
   tb_municipio ||--|| sidra_6803_rede_agua : coleta
   tb_municipio ||--|| sidra_6892_coleta_lixo : coleta
   tb_municipio ||--|| alfabetizacao_total_9542 : coleta
@@ -175,4 +193,4 @@ erDiagram
 - Todos os nomes seguem padrão `snake_case` e estão tratados para uso direto no DuckDB e Python (Polars, Pandas).
 - A tabela `tb_brasil_estados` complementa `tb_municipio` com mais indicadores sociais e econômicos.
 - É possível integrar esse modelo com visualizações (Power BI, Superset, Streamlit).
-- Ideal para análises com técnicas de clusterização, PCA, análise regional e detecção de outliers.
+- Ideal para análises com técnicas de clusterização, UMAP, análise regional e detecção de outliers.
