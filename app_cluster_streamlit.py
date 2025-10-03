@@ -8,7 +8,7 @@ import geobr
 st.set_page_config(
     page_title="Mapa da Saúde no Brasil",
     page_icon="🗺️",
-    layout="wide", #centered
+    layout="wide",
     initial_sidebar_state="auto"
 )
 
@@ -30,15 +30,27 @@ def carregar_geodados():
 def merge_dados_geograficos(df, geodf):
     return geodf.merge(df, left_on='code_muni_abrev', right_on='codigo_municipio', how='left')
 
-def obter_cores(inverter=False):
-    escala = [
-        [0, 'rgb(165,0,38)'],
-        [0.25, 'rgb(215,48,39)'],
-        [0.5, 'rgb(254,224,144)'],
-        [0.75, 'rgb(116,196,118)'],
-        [1, 'rgb(35,139,69)']
+def obter_cores_clusters(num_clusters):
+    """Retorna uma paleta de cores distinta e vibrante para os clusters"""
+    # Paleta de cores vibrantes e bem contrastantes
+    cores_vibrantes = [
+        '#e41a1c',  # Vermelho vibrante
+        '#377eb8',  # Azul forte
+        '#4daf4a',  # Verde vibrante
+        '#ff7f00',  # Laranja forte
+        '#984ea3',  # Roxo
+        '#f781bf',  # Rosa
+        '#a65628',  # Marrom
+        '#ffff33',  # Amarelo
+        '#00CED1',  # Turquesa
+        '#FF1493',  # Pink forte
     ]
-    return escala[::-1] if inverter else escala
+    
+    if num_clusters <= len(cores_vibrantes):
+        return cores_vibrantes[:num_clusters]
+    
+    # Se precisar de mais cores, gera uma paleta expandida
+    return px.colors.sample_colorscale("rainbow", [n/(num_clusters-1) for n in range(num_clusters)])
 
 # --- Dados e labels ---
 df = carregar_dados()
@@ -46,7 +58,7 @@ geodf = carregar_geodados()
 gdf = merge_dados_geograficos(df, geodf)
 
 labels = {
-    'cluster': 'Cluster',
+    'cluster': '🎯 Cluster',
     'populacao': '👥 População',
     'idh': '📊 IDH',
     'pib_per_capita': '💰 PIB per capita',
@@ -63,97 +75,136 @@ labels = {
     'mortalidade_infantil': '👶 Mortalidade infantil',
 }
 
-colunas_selecionaveis = [
-    'unidades_por_k_hab', 'idh', 'medicos_por_k_habitante',
-    'enfermeiros_por_k_habitante', 'leitos_por_k_hab',
-    'taxa_mortalidade_geral', 'mortalidade_infantil',
-    'pib_per_capita', 'taxa_de_alfabetizados', 'pct_idoso',
-    'taxa_freq_escolar', 'taxa_populacao_urbana'
-]
-labels_filtrados = {col: labels[col] for col in colunas_selecionaveis}
-
 # --- Interface ---
-
 st.write("<h1 style='text-align: center;'>🗺️ Mapa de Acesso à Saúde nos Municípios Brasileiros</h1>", unsafe_allow_html=True)
 
 st.write("""
-    Este mapa interativo exibe indicadores relacionados ao acesso e à oferta de serviços de saúde nos municípios brasileiros.
-    As informações abrangem aspectos demográficos, estruturais e de saúde pública, como:
+    Este mapa interativo exibe os clusters de municípios brasileiros baseados em indicadores de saúde e socioeconômicos.
+    
+    Os clusters agrupam municípios com características similares em relação a:
+    - População e estrutura demográfica
+    - Infraestrutura de saúde (unidades, médicos, enfermeiros, leitos)
+    - Indicadores de saúde (mortalidade geral e infantil)
+    - Indicadores socioeconômicos (IDH, PIB per capita, educação)
 
-    População, número de unidades po mil habitantes, quantidade de médicos e enfermeiros por mil habitantes, disponibilidade de leitos hospitalares (gerais e SUS),
-    taxas de mortalidade geral e infantil, indicadores socioeconômicos complementares.
-
-    Você pode explorar os dados por estado ou município e selecionar diferentes indicadores para colorir o mapa conforme o critério do seu interesse.
+    Você pode filtrar por estado, município e selecionar quais clusters deseja visualizar no mapa.
     
     **Obs.: O mapa pode demorar até 1 minuto para ser exibido!**
 """)
 
-opcoes_kpi = ['Selecione o critério'] + list(labels_filtrados.values())
-kpi_label = st.selectbox('Selecione o indicador que irá determinar a coloração do mapa:', options=opcoes_kpi)
+# Obter clusters únicos e ordenar
+clusters_disponiveis = sorted(df['cluster'].dropna().unique().tolist())
 
-if kpi_label != 'Selecione o critério':
-    coluna_kpi = {v: k for k, v in labels.items()}[kpi_label]
-    inverter_cores = coluna_kpi in ['obitos_por_unidade', 'taxa_mortalidade_geral', 'mortalidade_infantil']
-    cores = obter_cores(inverter=inverter_cores)
+# Seleção de clusters
+st.subheader("🎯 Filtrar por Clusters")
+clusters_selecionados = st.multiselect(
+    'Selecione os clusters que deseja visualizar:',
+    options=clusters_disponiveis,
+    default=clusters_disponiveis,
+    help="Deixe todos selecionados para visualizar o mapa completo"
+)
 
+# Filtros geográficos
+col_filtro1, col_filtro2 = st.columns(2)
+
+with col_filtro1:
     ufs = sorted(df['uf'].unique().tolist())
-    uf_selecionada = st.selectbox('Selecione a UF:', options=ufs + ['Todas as UFs'], index=len(ufs))
+    uf_selecionada = st.selectbox(
+        'Selecione a UF:',
+        options=['Todas as UFs'] + ufs,
+        index=0
+    )
 
+with col_filtro2:
     if uf_selecionada != 'Todas as UFs':
         municipios_disponiveis = sorted(df[df['uf'] == uf_selecionada]['nome'].unique().tolist())
     else:
         municipios_disponiveis = sorted(df['nome'].unique().tolist())
-    municipio_selecionado = st.selectbox('Selecione o município:', options=municipios_disponiveis + ['Todos os municípios'], index=len(municipios_disponiveis))
+    
+    municipio_selecionado = st.selectbox(
+        'Selecione o município:',
+        options=['Todos os municípios'] + municipios_disponiveis,
+        index=0
+    )
 
-    gdf_filtrado = gdf.copy()
+# Filtrar dados
+if clusters_selecionados:
+    gdf_filtrado = gdf[gdf['cluster'].isin(clusters_selecionados)].copy()
+    
     if uf_selecionada != 'Todas as UFs':
         gdf_filtrado = gdf_filtrado[gdf_filtrado['uf'] == uf_selecionada]
+    
     if municipio_selecionado != 'Todos os municípios':
         gdf_filtrado = gdf_filtrado[gdf_filtrado['nome'] == municipio_selecionado]
 
-    # Título da legenda
-    partes_legenda = kpi_label.split()
-    titulo_legenda = '<br>'.join([' '.join(partes_legenda[:2]), ' '.join(partes_legenda[2:])])
-
-    fig = px.choropleth_map(
-        gdf_filtrado,
-        geojson=gdf_filtrado.geometry,
-        locations=gdf_filtrado.index,
-        color=coluna_kpi,
-        color_continuous_scale=cores,
-        range_color=[0, gdf_filtrado[coluna_kpi].quantile(0.95)],
-        zoom=3.5,
-        center={"lat": -15.77972, "lon": -52.92972},
-        opacity=0.7,
-        hover_name='uf_nome',
-        hover_data=list(labels.keys()),
-        labels=labels,
-        title='🗺️ Mapa de Acesso à Saúde nos Municípios Brasileiros'
-    )
-
-    fig.update_layout(
-        mapbox_style="carto-positron",
-        margin={"r": 0, "t": 50, "l": 0, "b": 0},
-        height=800,
-        coloraxis_colorbar=dict(
-            title=titulo_legenda,
-            thicknessmode="pixels", thickness=20,
-            lenmode="pixels", len=300,
-            yanchor="top", y=1,
-            ticks="outside"
+    # Criar mapa
+    if len(gdf_filtrado) > 0:
+        # Obter cores para os clusters
+        cores_clusters = obter_cores_clusters(len(clusters_disponiveis))
+        mapa_cores = {cluster: cores_clusters[i] for i, cluster in enumerate(clusters_disponiveis)}
+        
+        fig = px.choropleth_map(
+            gdf_filtrado,
+            geojson=gdf_filtrado.geometry,
+            locations=gdf_filtrado.index,
+            color='cluster',
+            color_discrete_map=mapa_cores,
+            zoom=3.5,
+            center={"lat": -15.77972, "lon": -52.92972},
+            opacity=0.7,
+            hover_name='nome',
+            hover_data=list(labels.keys()),
+            labels=labels,
+            title='🗺️ Mapa de Clusters - Acesso à Saúde nos Municípios Brasileiros',
+            category_orders={"cluster": clusters_disponiveis}
         )
-    )
 
-    st.plotly_chart(fig, use_container_width=True)
+        fig.update_layout(
+            mapbox_style="carto-positron",
+            margin={"r": 0, "t": 50, "l": 0, "b": 0},
+            height=800,
+            legend=dict(
+                title=dict(text="Cluster", font=dict(size=14, color="black")),
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=0.01,
+                bgcolor="rgba(255, 255, 255, 0.95)",
+                bordercolor="rgba(0, 0, 0, 0.2)",
+                borderwidth=1,
+                font=dict(size=12)
+            )
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Estatísticas dos clusters selecionados
+        st.markdown("---")  # Linha divisória antes das estatísticas
+        st.markdown("<br>", unsafe_allow_html=True)  # Espaçamento adicional
+        st.subheader("📊 Estatísticas dos Clusters Selecionados")
+        st.markdown("<br>", unsafe_allow_html=True)  # Espaçamento adicional
+        
+        df_filtrado = df[df['cluster'].isin(clusters_selecionados)]
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total de Municípios", f"{len(df_filtrado):,}")
+        with col2:
+            st.metric("População Total", f"{df_filtrado['populacao'].sum():,.0f}")
+        with col3:
+            st.metric("IDH Médio", f"{df_filtrado['idh'].mean():.3f}")
+        with col4:
+            st.metric("Clusters Ativos", len(clusters_selecionados))
+    else:
+        st.warning("Nenhum município encontrado com os filtros selecionados.")
 else:
-    st.warning("Por favor, selecione um critério para visualizar o mapa.")
+    st.warning("Por favor, selecione pelo menos um cluster para visualizar o mapa.")
 
 # --- Seção de Contato ---
-st.markdown("---")  # Linha divisória
+st.markdown("---")
 
 st.markdown("<h3 style='text-align: center; color: #1f77b4;'>📬 Entre em Contato</h3>", unsafe_allow_html=True)
 
-# Criar colunas para organizar os links
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
