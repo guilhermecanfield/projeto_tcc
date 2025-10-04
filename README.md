@@ -13,7 +13,7 @@ Este repositório reúne o projeto de conclusão do MBA em **Data Science e Anal
 
 🔍 Acesse agora o **mapa interativo** com todos os municípios brasileiros agrupados por similaridade, segundo análise de componentes principais e clusterização não supervisionada:
 
-👉 **[mapasaudebrasil.streamlit.app](https://mapasaudebrasil.streamlit.app/)**
+👉 **[mapasaudebrasil.streamlit.app](https://mapadasaudenobrasil.streamlit.app/)**
 
 > Nele, é possível visualizar **a que cluster cada município pertence**, navegar pelos perfis regionais, e explorar desigualdades na infraestrutura de saúde com clareza.
 
